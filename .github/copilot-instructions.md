@@ -2,205 +2,144 @@
 
 ## Project Overview
 
-organiseAIMediaStudio is a web application for managing and organizing media files using AI technologies. It features a modern frontend built with React and a FastAPI backend for handling file uploads, processing, and storage.
+organiseAIMediaStudio is a web-based application for AI-powered photo and video creation, editing, and montage assembly. Users can upload images, generate video montages, and perform advanced media edits (such as clothing replacement or attribute changes) while preserving faces and core appearance.
+
+- **Frontend:** React + Material UI
+- **Backend:** FastAPI (Python)
+- **AI/ML Integration:** Uses Python libraries and models for image/video processing, inpainting, generation, and montage.
 
 ## Architecture & Key Components
 
 ### Directory Structure
-- `ui/` - Tkinter GUI components following consistent frame-based patterns
-- `src/` - Core business logic (photo processing, iCloud sync, file operations)
-- `tests/` - pytest-based test suite with comprehensive coverage
-- `main.py` - Application entry point
-- `globalVars.py` - Centralized configuration and constants
+
+- `backend/` - FastAPI backend (REST API, Python business logic, all AI/ML-related Python code)
+    - `main.py` (FastAPI app entrypoint)
+    - `requirements.txt` (backend dependencies)
+- `frontend/` - React app (Material UI, all user interface logic)
+    - `src/` - React components and entrypoints
+        - `App.js`, `index.js`
+- `.github/copilot-instructions.md` - This file, for Copilot guidance
 
 ### Core Technologies
-- **GUI Framework**: Tkinter with custom frame templates
-- **Photo Processing**: PIL/Pillow, imagehash, piexif for EXIF handling
-- **Video Processing**: moviepy for video thumbnails and metadata
-- **Cloud Integration**: pyicloud for iCloud Photos API
-- **Security**: cryptography.Fernet for credential encryption
-- **Testing**: pytest with custom fixtures
 
-## Development Standards
+- **Backend**: Python 3.x, FastAPI, Pillow, Uvicorn, (AI/ML models: e.g., Stable Diffusion, OpenCV, moviepy, etc.)
+- **Frontend**: React (with JS or TS), Material UI
+- **Media Processing**: PIL/Pillow (Python), OpenCV, moviepy, rembg, etc.
+- **Video Generation**: moviepy, Stable Diffusion or equivalent
 
-### Code Style & Quality
-- **Formatting**: Use `black` for consistent code formatting
-- **Linting**: Custom GUI naming linter enforces UI component naming conventions
-- **Pre-commit hooks**: Automatic formatting and linting before commits
+## Development & Code Style
+
+- **Formatting**:
+    - Python code: PEP8, format with `black`
+    - JavaScript/React: Prettier (standard React/Eslint rules)
+- **Linting**: Use flake8 for Python, ESLint for JS/React if possible
+- **Pre-commit hooks**: Recommended for both codebases
 
 ### Naming Conventions
-- **GUI Components**: Follow specific patterns (e.g., `frmMain`, `btnSave`, `lblStatus`)
-- **Classes**: PascalCase (e.g., `MainFrame`, `ContactSheetFrame`)
-- **Functions and Variables**: camelCase (e.g., `scanCategories`, `loadExistingHashes`, `analyzeFolders`)
-- **Constants**: UPPERCASE_WITH_UNDERSCORES (e.g., `WINDOW_WIDTH`, `PAD_X`)
+
+- **Classes**: PascalCase (e.g., `MediaEditor`, `UploadController`)
+- **Functions/Variables**: camelCase (e.g., `processUpload`, `handleVideoRequest`)
+- **Constants**: UPPERCASE_WITH_UNDERSCORES (e.g., `MAX_UPLOAD_SIZE`)
+- **React Components**: PascalCase and .js files in src/
 
 ### File Organization
-- **UI Classes**: Inherit from `ScanFrame` or `FrameTemplate` base classes
-- **Business Logic**: Separate from UI, placed in `src/` directory
-- **Utilities**: Shared functions in dedicated modules (e.g., `logUtils.py`)
 
-## GUI Development Guidelines
+- Separate backend and frontend logic entirely.
+- Backend: API endpoints in `main.py` or under submodules, ML models/utilities under corresponding backend/ directories.
+- Frontend: All components, hooks, context, etc., under frontend/src/.
 
-### Framework Patterns
-- Use `pack()` layout manager consistently (avoid `grid()`)
-- Implement consistent padding using `PAD_X`, `PAD_Y` constants
-- Follow the frame template pattern for new UI components
-- Use status frames for user feedback and progress indication
+## API/Backend Development Guidelines
 
-### Component Standards
-- **Buttons**: Use `ttk.Button` with consistent styling
-- **Entry Fields**: `ttk.Entry` with validation where appropriate
-- **Labels**: `ttk.Label` for consistent appearance
-- **Frames**: `ttk.Frame` for layout organization
+- Use FastAPI for all API endpoints.
+- Design endpoints:
+    - `/upload/` for file uploads (accepts images/videos, POST)
+    - `/edit/` for AI-powered edits (change clothing, modify attributes)
+    - `/montage/` for creating montages/videos
+    - `/status/` for job tracking (if using background jobs)
+- Validate incoming requests (file type, size, format)
+- Serve static/media files securely (if needed)
 
-### User Experience
-- Provide progress feedback for long-running operations
-- Implement error handling with user-friendly messages
-- Use tooltips for complex UI elements
-- Maintain consistent window sizing and positioning
+## Frontend Development Guidelines
+
+- Use React (with JS or TS), leveraging Material UI for layout and controls.
+- Store API URLs/config in environment or config files for easy switching.
+- Use functional components and hooks for logic.
+- Write clear, user-friendly UI for uploads and displaying results.
+- Handle loading, errors, and job statuses gracefully.
+- Provide responsive layout for desktop and tablet/mobile if possible.
+
+## Media Processing Guidelines
+
+- **Supported types**: JPEG, PNG images; MP4 video (extend as needed)
+- **AI Editing**: Use established models for inpainting/clothing swap, maintain facial integrity.
+- **Montage Creation**: Use moviepy (or similar) for photo-to-video and combining segments.
+- **EXIF/Metadata**: Preserve when possible.
+- **Security**: Validate, never execute/process untrusted code.
 
 ## Testing Requirements
 
-### Test Structure
-- Use pytest conventions (`test_*.py` files, `test_*` functions)
-- Create focused, single-purpose test functions
-- Use `tmp_path` fixture for temporary file testing
-- Mock external dependencies (iCloud API, file system operations)
+- **Backend**: pytest (test endpoints, edge cases, invalid requests, large files).
+- **Frontend**: (optional) React Testing Library/Jest for critical UI flows.
+- **Coverage**: Focus on core AI/model endpoints and file upload/edit APIs.
 
-### Test Categories
-- **Unit Tests**: Individual function testing
-- **Integration Tests**: Component interaction testing
-- **GUI Tests**: User interface behavior validation
-- **File Operation Tests**: Safe file handling verification
+## Error Handling
 
-### Coverage Expectations
-- Core business logic: >90% coverage
-- File operations: Comprehensive edge case testing
-- Error handling: All error paths tested
-- GUI components: Key interaction flows tested
+- Always provide clear API error messages (JSON with `detail` or similar)
+- Log backend errors for tracing/debug
+- User-friendly frontend error banners/messages
+
+## Example: FastAPI Endpoint
+
+```python
+from fastapi import FastAPI, UploadFile, File
+
+app = FastAPI()
+
+@app.post("/upload/")
+async def uploadMedia(file: UploadFile = File(...)):
+    # Validate file type/size, store in upload dir, return file id/path
+    ...
+```
+
+## Example: React File Upload (with MUI)
+
+```javascript
+import React, { useState } from "react";
+import { Button } from "@mui/material";
+
+function UploadButton() {
+  const [file, setFile] = useState(null);
+
+  const handleChange = (e) => setFile(e.target.files[0]);
+  const handleUpload = async () => {
+    if (!file) return;
+    const formData = new FormData();
+    formData.append("file", file);
+    await fetch("/upload/", { method: "POST", body: formData });
+  };
+
+  return (
+    <div>
+      <input type="file" onChange={handleChange} />
+      <Button onClick={handleUpload}>Upload</Button>
+    </div>
+  );
+}
+```
 
 ## Security Considerations
 
-### Credential Handling
-- Never hardcode credentials or API keys
-- Use encrypted storage for sensitive data
-- Implement secure 2FA flows
-- Clear credential caches when requested
-
-### File Operations
-- Validate file paths and extensions
-- Use safe file naming with conflict resolution
-- Implement proper error handling for file operations
-- Respect user permissions and system limitations
-
-## Photo/Media Processing Guidelines
-
-### File Type Support
-- **Photos**: JPEG, TIFF with EXIF metadata preservation
-- **Videos**: MP4, MOV with metadata extraction
-- **Thumbnails**: Consistent sizing and quality
-- **Contact Sheets**: Grid layout with drag-and-drop support
-
-### Metadata Handling
-- Preserve EXIF data during file operations
-- Extract timestamp information reliably
-- Handle missing or corrupted metadata gracefully
-- Support multiple date sources (EXIF, file creation, modified)
-
-### Performance Considerations
-- Use lazy loading for large photo collections
-- Implement progress feedback for batch operations
-- Cache thumbnails to improve UI responsiveness
-- Handle memory efficiently for large media files
-
-## Error Handling & Logging
-
-### Logging Standards
-- Use centralized logger from `logUtils.py`
-- Include module name and operation context
-- Log at appropriate levels (DEBUG, INFO, WARNING, ERROR)
-- Store daily logs with timestamp format
-
-### Logging Guidelines
-- **Message Format**: All messages in lowercase
-- **Major Actions**: `"doing something..."` - major action being taken
-- **Action Completion**: `"...something done"` - above action completed
-- **General Updates**: `"...message"` - general update, doing this, transitory information
-- **Information Display**: `"...message: value"` - display some information
-- **Error Messages**: ERROR messages should be in Sentence Case
-- **Usage**: 
-  ```python
-  from src.logUtils import logger
-  logger.info("...message")
-  ```
-
-### Error Recovery
-- Implement graceful degradation for non-critical failures
-- Provide user-actionable error messages
-- Offer retry mechanisms for transient failures
-- Maintain application stability during errors
-
-## Code Examples
-
-### GUI Component Creation
-```python
-class MyFrame(ScanFrame):
-    def __init__(self, parent):
-        super().__init__(parent, title="My Frame", actionButtonText="Process")
-        
-    def createFrame(self):
-        self.frmMain = ttk.Frame(self)
-        self.frmMain.pack(padx=PAD_X, pady=PAD_Y, fill=tk.BOTH, expand=True)
-        
-        # Use consistent naming and layout
-        self.lblStatus = ttk.Label(self.frmMain, text="Ready")
-        self.lblStatus.pack(pady=PAD_Y)
-```
-
-### File Operation Pattern
-```python
-from src.renameMedia import incrementFilename, renameFile
-
-def safeFileOperation(sourcePath, destPath):
-    try:
-        # Use conflict resolution
-        safeDest = incrementFilename(destPath)
-        renameFile(sourcePath, safeDest)
-        logger.info(f"...moved {sourcePath} to {safeDest}")
-        return safeDest
-    except Exception as e:
-        logger.error(f"Failed to move file: {e}")
-        raise
-```
-
-### Test Pattern
-```python
-def test_file_operation(tmp_path):
-    # Arrange
-    sourceFile = tmp_path / "test.jpg"
-    sourceFile.write_text("test content")
-    
-    # Act
-    result = processFile(str(sourceFile))
-    
-    # Assert
-    assert result.exists()
-    assert result.name.startswith("processed_")
-```
-
-## Common Patterns to Follow
-
-1. **Consistent Error Handling**: Always use try-catch with proper logging
-2. **User Feedback**: Provide progress updates for long operations
-3. **Resource Management**: Clean up temporary files and resources
-4. **Modular Design**: Separate UI logic from business logic
-5. **Configuration**: Use centralized settings from `globalVars.py`
+- Never hard-code secrets or credentials
+- If using third-party AI/APIs, secure tokens/keys
+- Limit upload size and sanitize files if processed
 
 ## When Contributing
 
-- Run tests with `python -m pytest` before submitting
-- Ensure GUI naming linter passes: `python tests/runLinter.py`
-- Format code with `black`
-- Update documentation for new features
-- Consider backward compatibility for file operations
-- Test with various photo/video formats and edge cases
+- Run/test code in your environment before PR
+- Ensure all appropriate tests pass
+- Update/extend documentation for new features and API endpoints
+- Use consistent naming and code style as above
+
+---
+
+This file supersedes any Tkinter/iCloud/desktop patterns used in other projects.
